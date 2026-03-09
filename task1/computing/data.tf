@@ -1,18 +1,27 @@
+data "terraform_remote_state" "core" {
+  backend = "s3"
+  config = {
+    bucket = "get-sysops-case-study-remote-state"
+    key    = "task1/terraform.tfstate"
+    region = var.region
+  }
+}
+
 data "aws_secretsmanager_secret" "db_secrets" {
-  name = "get-case-study-task1-db-secrets"
+  name = "task1/db/credentials"
 }
 
 data "aws_secretsmanager_secret_version" "current" {
   secret_id = data.aws_secretsmanager_secret.db_secrets.id
 }
 
-data "aws_ami" "al2023" {
+data "aws_ami" "amazon_linux_2" {
   most_recent = true
   owners      = ["137112412989"]
 
   filter {
     name   = "name"
-    values = ["al2023-ami-2023*-kernel-6.1-x86_64"]
+    values = ["amzn2-ami-hvm-2.0.*-x86_64-gp2"]
   }
 
   filter {

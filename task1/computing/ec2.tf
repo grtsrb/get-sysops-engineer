@@ -1,8 +1,8 @@
 resource "aws_instance" "task1_web" {
-  ami           = data.aws_ami.al2023.id
-  instance_type = "t3.micro"
+  ami           = data.aws_ami.amazon_linux_2.id
+  instance_type = "t2.micro"
 
-  subnet_id              = aws_subnet.public["1a"].id
+  subnet_id              = data.terraform_remote_state.core.outputs.public_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.instance.id]
 
   associate_public_ip_address = true
@@ -11,54 +11,68 @@ resource "aws_instance" "task1_web" {
   depends_on = [aws_db_instance.task1_db]
   user_data  = <<-EOF
               #!/bin/bash
-              # 1. Update packages
-              dnf update -y
+              # 1. Update and installation of packages
+              yum update -y
+              amazon-linux-extras enable php8.2 postgresql14
+              yum install -y httpd php php-pgsql jq nc postgresql
 
-              # 2. Install Apache
-              dnf install -y httpd
               systemctl start httpd
               systemctl enable httpd
 
-              # 3. Install PostgreSQL 16 Client
-              dnf install -y postgresql16 jq aws-cli
-
+              # 2. Variables
               DB_HOST="${aws_db_instance.task1_db.address}"
+              DB_NAME="postgres"
 
-              until nc -zv $DB_HOST 5432; do
-                echo "Waiting for PostgreSQL to be available..."
-                sleep 5
-              done
-
-              # 4. Fetch Credentials from Secrets Manager
+              # 3. Get credentials 
               SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id ${data.aws_secretsmanager_secret.db_secrets.id} --query SecretString --output text --region ${var.region})
-              
-              # 5. Extract user and pass using JQ
               DB_USER=$(echo $SECRET_JSON | jq -r .username)
-              export PGPASSWORD=$(echo $SECRET_JSON | jq -r .password)
+              DB_PASS=$(echo $SECRET_JSON | jq -r .password)
 
-              psql -h $DB_HOST -U $DB_USER -d postgres <<SQL
+              # 4. Wait for RDS (in case it has not started yet) 
+              export PGPASSWORD=$DB_PASS
+              until nc -zv $DB_HOST 5432; do sleep 5; done
+
+              psql -h $DB_HOST -U $DB_USER -d $DB_NAME <<SQL
               CREATE TABLE IF NOT EXISTS inventory (
                   id SERIAL PRIMARY KEY,
-                  item_name VARCHAR(100) NOT NULL,
+                  item_name VARCHAR(100),
                   category VARCHAR(50),
-                  price NUMERIC(10, 2),
-                  stock_count INTEGER,
-                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                  price NUMERIC(10, 2)
               );
-
-              INSERT INTO inventory (item_name, category, price, stock_count) VALUES 
-              ('Lenovo Thinkpad', 'Electronics', 1200.50, 10),
-              ('Logitech MX Master 3s', 'Peripherals', 80.00, 50),
-              ('Logitech MX Keys', 'Peripherals', 110.00, 15)
+              INSERT INTO inventory (item_name, category, price) VALUES 
+              ('Lenovo Thinkpad', 'Electronics', 1200.50),
+              ('Logitech MX Master 3s', 'Peripherals', 80.00)
               ON CONFLICT DO NOTHING;
-              SQL
-              # 6. Clean up
-              unset PGPASSWORD              
+SQL
+              5. Create new php page which reads from database
+              cat <<PHP > /var/www/html/index.php
+<?php
+\$host = "$DB_HOST";
+\$db   = "$DB_NAME";
+\$user = "$DB_USER";
+\$pass = "$DB_PASS";
 
-              # 7. Create simple landing page
-              echo "<h1>Amazon Linux 2023 - Task 1</h1>" > /var/www/html/index.html
+try {
+    \$dsn = "pgsql:host=\$host;port=5432;dbname=\$db;";
+    \$pdo = new PDO(\$dsn, \$user, \$pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+
+    echo "<h1>Inventory from RDS</h1>";
+    echo "<table border='1'><tr><th>Item</th><th>Category</th><th>Price</th></tr>";
+
+    \$stmt = \$pdo->query("SELECT item_name, category, price FROM inventory");
+    while (\$row = \$stmt->fetch()) {
+        echo "<tr><td>{\$row['item_name']}</td><td>{\$row['category']}</td><td>\$" . \$row['price'] . "</td></tr>";
+    }
+    echo "</table>";
+
+} catch (PDOException \$e) {
+    echo "Connection failed: " . \$e->getMessage();
+}
+?>
+PHP
+
+              unset PGPASSWORD
               EOF
-
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
@@ -66,7 +80,9 @@ resource "aws_instance" "task1_web" {
   }
 
   tags = {
-    Name = "task1-al2023-web"
+    Name        = "test-ec2"
+    Description = "Test instance"
+    CostCenter  = "123456"
   }
 }
 

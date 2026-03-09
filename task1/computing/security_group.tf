@@ -1,25 +1,24 @@
 resource "aws_security_group" "database" {
   name        = "task1-db-sg"
   description = "Security group for RDS database"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.terraform_remote_state.core.outputs.vpc_id
 
   ingress {
-    description = "Allow PostgreSQL from EC2 in public subnets"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [for s in aws_subnet.public : s.cidr_block]
+    description     = "Allow PostgreSQL from EC2 in public subnets"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.instance.id]
   }
 
   tags = { Name = "task1-db-sg" }
 }
 
 resource "aws_security_group" "instance" {
-  name        = "task1-ec2-sg" # Added quotes
+  name        = "task1-ec2-sg"
   description = "Security group for EC2 instances"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.terraform_remote_state.core.outputs.vpc_id
 
-  # Rule 1: Restricted SSH (No '=' used for blocks)
   ingress {
     description = "Allow SSH from my WSL"
     from_port   = 22
