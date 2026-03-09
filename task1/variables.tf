@@ -14,3 +14,10 @@ variable "public_subnet_list" {
 
   description = "List of public subnets for task1"
 }
+
+variable "region" {
+  type        = string
+  description = "AWS region to deploy resources in"
+
+  default = "eu-central-1"
+}
