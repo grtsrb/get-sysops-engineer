@@ -30,7 +30,6 @@ resource "aws_iam_role_policy" "ec2_secrets_only" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        # Restrict to only your specific manual secret
         Resource = data.aws_secretsmanager_secret.db_credentials.arn
       }
     ]
