@@ -8,16 +8,25 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-central-1" # Frankfurt 
+  region  = "eu-central-1" # Frankfurt 
   profile = "get-sysops-case-study-task2"
+
+  default_tags {
+    tags = {
+      Author  = "Nikola Vlaskalin"
+      Region  = "eu-central-1"
+      Project = "GET Case Study"
+      Task    = "Task 2"
+    }
+  }
 }
 
 terraform {
   backend "s3" {
-    bucket = "get-sysops-case-study-remote-state"
-    key    = "task2/terraform.tfstate"
-    region = "eu-central-1"
-    profile = "get-sysops-case-study-task2"
+    bucket       = "get-sysops-case-study-remote-state"
+    key          = "task2/terraform.tfstate"
+    region       = "eu-central-1"
+    profile      = "get-sysops-case-study-task2"
     use_lockfile = true
   }
 }
