@@ -1,14 +1,15 @@
-resource "aws_instance" "task1-web" {
+resource "aws_instance" "task1_web" {
   ami           = data.aws_ami.al2023.id
   instance_type = "t3.micro"
 
   subnet_id              = aws_subnet.public["1a"].id
-  vpc_security_group_ids = [aws_security_group.compute.id]
+  vpc_security_group_ids = [aws_security_group.instance.id]
 
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
 
-  user_data = <<-EOF
+  depends_on = [aws_db_instance.task1_db]
+  user_data  = <<-EOF
               #!/bin/bash
               # 1. Update packages
               dnf update -y
@@ -19,9 +20,9 @@ resource "aws_instance" "task1-web" {
               systemctl enable httpd
 
               # 3. Install PostgreSQL 16 Client
-              dnf install -y postgresql16 jq aws-
+              dnf install -y postgresql16 jq aws-cli
 
-              DB_HOST=${aws_db_instance.task1-db.address}
+              DB_HOST="${aws_db_instance.task1_db.address}"
 
               until nc -zv $DB_HOST 5432; do
                 echo "Waiting for PostgreSQL to be available..."
@@ -29,7 +30,7 @@ resource "aws_instance" "task1-web" {
               done
 
               # 4. Fetch Credentials from Secrets Manager
-              SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id ${data.aws_secretsmanager_secret.db_credentials.id} --query SecretString --output text --region ${var.region})
+              SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id ${data.aws_secretsmanager_secret.db_secrets.id} --query SecretString --output text --region ${var.region})
               
               # 5. Extract user and pass using JQ
               DB_USER=$(echo $SECRET_JSON | jq -r .username)
@@ -78,6 +79,6 @@ resource "aws_eip" "web_static_ip" {
 }
 
 resource "aws_eip_association" "eip_assoc" {
-  instance_id   = aws_instance.task1-web.id
+  instance_id   = aws_instance.task1_web.id
   allocation_id = aws_eip.web_static_ip.id
 }

@@ -3,7 +3,7 @@ resource "aws_security_group" "database" {
   description = "Security group for RDS database"
   vpc_id      = aws_vpc.main.id
 
-  ingress = {
+  ingress {
     description = "Allow PostgreSQL from EC2 in public subnets"
     from_port   = 5432
     to_port     = 5432
@@ -25,7 +25,7 @@ resource "aws_security_group" "instance" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.my_public_ip.response_body)}/32"]
+    cidr_blocks = ["${chomp(data.http.public_ip.response_body)}/32"]
   }
   ingress {
     description = "Allow HTTP from anywhere"

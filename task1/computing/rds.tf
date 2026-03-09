@@ -1,4 +1,4 @@
-resource "aws_db_instance" "name" {
+resource "aws_db_instance" "task1_db" {
   allocated_storage = 10
   db_name           = "task1-db-instance"
   engine            = "postgres"
@@ -7,8 +7,8 @@ resource "aws_db_instance" "name" {
 
   multi_az = true
 
-  username = jsonencode(data.aws_secretsmanager_secret_version.current.secret_string)["username"]
-  password = jsonencode(data.aws_secretsmanager_secret_version.current.secret_string)["password"]
+  username = jsondecode(data.aws_secretsmanager_secret_version.current.secret_string)["username"]
+  password = jsondecode(data.aws_secretsmanager_secret_version.current.secret_string)["password"]
 
   db_subnet_group_name   = aws_db_subnet_group.database.name
   vpc_security_group_ids = [aws_security_group.database.id]
