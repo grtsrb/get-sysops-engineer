@@ -1,0 +1,50 @@
+# ====================================================================
+# TERRAFORM FILES
+# ====================================================================
+
+# Local .terraform directory (where providers and modules are downloaded)
+# NEVER commit this. It's massive and can be recreated with 'terraform init'
+**/.terraform/*
+
+# .tfstate files (Contains your infrastructure "truth" and plain-text secrets)
+# Since you are using an S3 backend, these shouldn't be local, 
+# but this rule prevents accidental local commits.
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files
+# These often contain passwords, keys, or sensitive environment data.
+*.tfvars
+*.tfvars.json
+
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Ignore terraform plan files (binary files from terraform plan -out)
+*tfplan*
+
+# ====================================================================
+# AWS & OS SPECIFIC
+# ====================================================================
+
+# Ignore local AWS credentials (if you accidentally save them in-repo)
+.aws/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files (VS Code, IntelliJ)
+.vscode/
+.idea/
