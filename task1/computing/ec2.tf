@@ -28,7 +28,7 @@ resource "aws_instance" "task1_web" {
               DB_USER=$(echo $SECRET_JSON | jq -r .username)
               DB_PASS=$(echo $SECRET_JSON | jq -r .password)
 
-              # 4. Wait for RDS (in case it has not started yet) 
+              # 4. Wait for RDS to be up, create table and fill it with data 
               export PGPASSWORD=$DB_PASS
               until nc -zv $DB_HOST 5432; do sleep 5; done
 

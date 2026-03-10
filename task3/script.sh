@@ -8,6 +8,7 @@ if [[ ! -f "$file" ]]; then
 fi
 
 echo "====== 1. Creating files from $file ======"
+
 while IFS= read -r line || [ -n "$line" ]; do
   filename=$(echo "$line" | tr -d '\r'| xargs)
   
@@ -17,6 +18,7 @@ while IFS= read -r line || [ -n "$line" ]; do
 done < "$file"
 
 ls *.kod  > /dev/null 2>&1
+
 if [[ $? -ne 0 ]]; then
   echo "No .kod files found in the current directory."
   exit 0

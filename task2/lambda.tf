@@ -7,9 +7,7 @@ module "task2_helloworld" {
   handler       = "hello_world.lambda_handler"
   runtime       = "python3.12"
   publish       = true
-
   source_path = "${path.module}/lambda/hello_world"
-
 
   environment_variables = {
     SNS_TOPIC_ARN = module.sns_topic.topic_arn
@@ -24,7 +22,6 @@ module "task2_helloworld" {
       source_arn = module.eventbridge_cron.eventbridge_rule_arns["crons"]
     }
   }
-
 
   attach_policy_statements = true
   policy_statements = {
