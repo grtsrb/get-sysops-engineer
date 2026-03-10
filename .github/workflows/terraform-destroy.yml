@@ -1,0 +1,35 @@
+name: Destroy terraform infrastructure
+on:
+  workflow_dispatch: 
+    inputs:
+        confirm_destroy:
+          description: 'Type "yes" to confirm destroy'
+          required: true
+          default: 'no'
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  terraform-destroy:
+    name: 'Destroy infrastructure'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./task1/computing
+    steps:
+      - name: Git clone the repo
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          audience: sts.amazonaws.com
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role 
+      - name: Set up Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform init
+        run: terraform init -input=false
+      - name: Terraform destroy
+        if: github.event.inputs.confirm_destroy == 'yes'
+        run: terraform destroy -auto-approve
