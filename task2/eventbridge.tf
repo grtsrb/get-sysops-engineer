@@ -6,8 +6,9 @@ module "eventbridge_cron" {
 
   rules = {
     crons = {
-      description         = "Trigger Hello World lambda each day at 1 am"
-      schedule_expression = "cron(0 1 * * ? *)"
+      description = "Trigger Hello World lambda each day at 1 am"
+      # UTC+1 Novi Sad
+      schedule_expression = "cron(0 0 * * ? *)"
     }
   }
 
