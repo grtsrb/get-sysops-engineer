@@ -7,4 +7,5 @@ variable "region" {
 
 variable "test" {
   description = "Test variable 123"
+  default = "test"
 }
