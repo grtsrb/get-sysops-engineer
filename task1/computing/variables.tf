@@ -6,5 +6,5 @@ variable "region" {
 }
 
 variable "test" {
-  description = "Test variable"
+  description = "Test variable 123"
 }
