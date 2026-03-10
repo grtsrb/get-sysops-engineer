@@ -9,7 +9,6 @@ terraform {
 
 provider "aws" {
   region  = "eu-central-1" # Frankfurt 
-  profile = "get-sysops-case-study-task1"
 
   default_tags {
     tags = {
@@ -26,7 +25,6 @@ terraform {
     bucket       = "get-sysops-case-study-remote-state"
     key          = "task1/terraform.tfstate"
     region       = "eu-central-1"
-    profile      = "get-sysops-case-study-task1"
     use_lockfile = true
   }
 }

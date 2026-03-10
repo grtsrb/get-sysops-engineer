@@ -25,10 +25,13 @@ jobs:
         id: filter
         with:
           filters: |
-            task1_core: ['task1/**', '!task1/computing/**']
-            task1_computing: ['task1/computing/**']
-            task2: ['task2/**']
-
+            task1_core:
+              - 'task1/*.tf'       
+              - 'task1/*.tfvars'
+            task1_computing:
+              - 'task1/computing/**' 
+            task2:
+              - 'task2/**'
   deploy-task1-core:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.task1_core == 'true'
