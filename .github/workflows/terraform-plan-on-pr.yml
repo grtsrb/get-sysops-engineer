@@ -1,0 +1,77 @@
+name: Terraform Plan on PR
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'task1/**'
+      - 'task2/**'
+
+permissions:
+  id-token: write 
+  contents: read
+  pull-requests: write
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      task1_core: ${{ steps.filter.outputs.task1_core }}
+      task1_computing: ${{ steps.filter.outputs.task1_computing }}
+      task2: ${{ steps.filter.outputs.task2 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            task1_core: ['task1/**', '!task1/computing/**']
+            task1_computing: ['task1/computing/**']
+            task2: ['task2/**']
+
+  plan-task1-core:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.task1_core == 'true'
+    runs-on: ubuntu-latest
+    name: "Plan: Task 1 Core"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role
+          aws-region: eu-central-1
+      - uses: hashicorp/setup-terraform@v3
+      - run: |
+          terraform -chdir=./task1 init -input=false
+          terraform -chdir=./task1 plan -no-color
+
+  plan-task1-computing:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.task1_computing == 'true'
+    runs-on: ubuntu-latest
+    name: "Plan: Task 1 Computing"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role
+          aws-region: eu-central-1
+      - uses: hashicorp/setup-terraform@v3
+      - run: |
+          terraform -chdir=./task1/computing init -input=false
+          terraform -chdir=./task1/computing plan -no-color
+
+  plan-task2:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.task2 == 'true'
+    runs-on: ubuntu-latest
+    name: "Plan: Task 2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role
+          aws-region: eu-central-1
+      - uses: hashicorp/setup-terraform@v3
+      - run: |
+          terraform -chdir=./task2 init -input=false
+          terraform -chdir=./task2 plan -no-color
