@@ -4,8 +4,3 @@ variable "region" {
 
   default = "eu-central-1"
 }
-
-variable "test" {
-  description = "Test variable 123"
-  default = "test"
-}

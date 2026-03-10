@@ -1,5 +1,6 @@
 resource "aws_db_instance" "task1_db" {
   allocated_storage = 10
+  identifier = "task1-db-instance"
   db_name           = "task1_db"
   engine            = "postgres"
   engine_version    = "16"
