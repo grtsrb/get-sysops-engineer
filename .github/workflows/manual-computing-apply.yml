@@ -1,0 +1,32 @@
+name: Manual Terraform Apply - Computing
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-apply:
+    name: 'Deploy Computing Infrastructure'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Git clone the repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          audience: sts.amazonaws.com
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role
+
+      - name: Set up Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=./task1/computing init -input=false
+
+      - name: Terraform Apply
+        run: terraform -chdir=./task1/computing apply -auto-approve -input=false
