@@ -79,6 +79,8 @@ PHP
     http_put_response_hop_limit = 1
   }
 
+  key_name = aws_key_pair.ssh_public_key.key_name
+
   tags = {
     Name        = "test-ec2"
     Description = "Test instance"
@@ -97,4 +99,9 @@ resource "aws_eip" "web_static_ip" {
 resource "aws_eip_association" "eip_assoc" {
   instance_id   = aws_instance.task1_web.id
   allocation_id = aws_eip.web_static_ip.id
+}
+
+resource "aws_key_pair" "ssh_public_key" {
+  key_name   = "ssh-public-key"
+  public_key = var.ssh_public_key
 }
