@@ -31,5 +31,8 @@ jobs:
       - name: Terraform init
         run: terraform init -input=false
       - name: Terraform destroy
+        env:
+          TF_VAR_my_ip_address: ${{ secrets.MY_IP_ADDRESS }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
         if: github.event.inputs.confirm_destroy == 'yes'
         run: terraform destroy -auto-approve
