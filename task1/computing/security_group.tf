@@ -24,7 +24,7 @@ resource "aws_security_group" "instance" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.public_ip.response_body)}/32"]
+    cidr_blocks = ["${var.my_ip_address}/32"]
   }
   ingress {
     description = "Allow HTTP from anywhere"

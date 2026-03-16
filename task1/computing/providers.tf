@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = "eu-central-1" # Frankfurt 
+  region = "eu-central-1" # Frankfurt 
 
   default_tags {
     tags = {

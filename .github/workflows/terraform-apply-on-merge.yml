@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   detect-changes:
+    name: "Detect Changes in Tasks"
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     outputs:
@@ -20,8 +21,10 @@ jobs:
       task1_computing: ${{ steps.filter.outputs.task1_computing }}
       task2: ${{ steps.filter.outputs.task2 }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+      - name: "Filter Path Changes"
+        uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -32,21 +35,26 @@ jobs:
               - 'task1/computing/**' 
             task2:
               - 'task2/**'
+
   deploy-task1-core:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.task1_core == 'true'
     runs-on: ubuntu-latest
     name: "Deploy: Task 1 Core"
     steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4.1.0
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role
           aws-region: eu-central-1
-      - uses: hashicorp/setup-terraform@v3
-      - run: |
-          terraform -chdir=./task1 init -input=false
-          terraform -chdir=./task1 apply -auto-approve -input=false
+      - name: "Setup Terraform"
+        uses: hashicorp/setup-terraform@v3
+      - name: "Terraform Init"
+        run: terraform -chdir=./task1 init -input=false
+      - name: "Terraform Apply"
+        run: terraform -chdir=./task1 apply -auto-approve -input=false
 
   deploy-task1-computing:
     needs: [detect-changes]
@@ -54,15 +62,22 @@ jobs:
     runs-on: ubuntu-latest
     name: "Deploy: Task 1 Computing"
     steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4.1.0
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role
           aws-region: eu-central-1
-      - uses: hashicorp/setup-terraform@v3
-      - run: |
-          terraform -chdir=./task1/computing init -input=false
-          terraform -chdir=./task1/computing apply -auto-approve -input=false
+      - name: "Setup Terraform"
+        uses: hashicorp/setup-terraform@v3
+      - name: "Terraform Init"
+        run: terraform -chdir=./task1/computing init -input=false
+      - name: "Terraform Apply with Secrets"
+        env:
+          TF_VAR_my_ip_address: ${{ secrets.MY_IP_ADDRESS }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+        run: terraform -chdir=./task1/computing apply -auto-approve -input=false
 
   deploy-task2:
     needs: [detect-changes]
@@ -70,12 +85,16 @@ jobs:
     runs-on: ubuntu-latest
     name: "Deploy: Task 2"
     steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4.1.0
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           role-to-assume: arn:aws:iam::851725498181:role/github-oidc-role
           aws-region: eu-central-1
-      - uses: hashicorp/setup-terraform@v3
-      - run: |
-          terraform -chdir=./task2 init -input=false
-          terraform -chdir=./task2 apply -auto-approve -input=false
+      - name: "Setup Terraform"
+        uses: hashicorp/setup-terraform@v3
+      - name: "Terraform Init"
+        run: terraform -chdir=./task2 init -input=false
+      - name: "Terraform Apply"
+        run: terraform -chdir=./task2 apply -auto-approve -input=false
